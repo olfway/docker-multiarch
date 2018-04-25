@@ -5,5 +5,7 @@ env | sort
 
 docker run --rm --privileged multiarch/qemu-user-static:register
 
+cp -v /usr/bin/qemu-*-static .
+
 #apt update
 #apt install -y qemu-user-static
