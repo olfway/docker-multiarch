@@ -1,6 +1,6 @@
 FROM arm64v8/busybox
 
-COPY qemu-*-static /usr/bin
+COPY qemu-arm-static /usr/bin/qemu-arm-static
 
 RUN uname -a
 
