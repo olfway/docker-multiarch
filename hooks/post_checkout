@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo 'post_checkout'
+
+env | sort
