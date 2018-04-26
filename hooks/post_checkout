@@ -15,7 +15,6 @@ export DOCKER_OS="$(uname -s | tr 'A-Z' 'a-z' | sed 's/darwin/mac/')"
 
 export DOCKER_HASH_VAR="DOCKER_HASH_$(echo "$DOCKER_OS" | tr 'a-z' 'A-Z')_$(echo "$DOCKER_ARCH" | tr 'a-z' 'A-Z')"
 
-
 curl -s "https://download.docker.com/$DOCKER_OS/static/stable/$DOCKER_ARCH/docker-$DOCKER_RELEASE.tgz" | gunzip | tar -x --strip-components 1 docker/docker
 
 if ! echo "${!DOCKER_HASH_VAR} docker" | sha256sum --check --status ; then
@@ -24,12 +23,13 @@ if ! echo "${!DOCKER_HASH_VAR} docker" | sha256sum --check --status ; then
     exit 1
 fi
 
-./docker run --rm --privileged multiarch/qemu-user-static:register
-
-#cat ~/.docker/config.json
-
 echo 'docker version:'
 ./docker --version
+
+./docker run --rm --privileged multiarch/qemu-user-static:register
+
+mkdir -p ~/.docker
+echo '{"experimental": "enabled"}' > ~/.docker/config.json
 
 echo 'docker manifest:'
 ./docker manifest --help
