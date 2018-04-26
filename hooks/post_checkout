@@ -11,7 +11,7 @@ DOCKER_HASH_MAC_X86_64="26f34373af94478a94a1458a8e37bd4161fc546521328812bb8961de
 DOCKER_HASH_LINUX_X86_64="f5ea546a4ccd64fbb71825f964171256388f1181b000f3c56747075e383c81c6"
 
 apt-get update
-apt-get install -y cronic jq
+apt-get install -y jq
 
 DOCKER_ARCH="$(uname -m)"
 DOCKER_OS="$(uname -s | tr 'A-Z' 'a-z' | sed 's/darwin/mac/')"
