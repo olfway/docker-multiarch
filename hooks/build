@@ -1,0 +1,43 @@
+#!/bin/bash
+
+source hooks/_conf
+
+if [ "${DOCKERFILE_PATH:-}" == "" ]; then
+    DOCKERFILE_PATH="."
+fi
+
+/usr/bin/find . -type f -name '*-manifest.json' -delete
+
+function docker_build() {
+
+    DOCKER_ARCH="$1"
+    DOCKER_PLATFORM_ARCH="$2"
+    SELECT_FILTER=".platform.architecture == \"${DOCKER_PLATFORM_ARCH}\""
+
+    if [ "$#" -ge "3" ]; then
+        DOCKER_PLATFORM_VAR="$3"
+        SELECT_FILTER="${SELECT_FILTER} and .platform.variant == \"${DOCKER_PLATFORM_VAR}\""
+    fi
+
+    DOCKER_BUILD_ARGS=""
+    for DOCKER_IMAGE_ITEM in $(grep '^ARG .*_IMAGE=' Dockerfile | cut -f2 -d' ' | sort -u); do
+        DOCKER_IMAGE="${DOCKER_IMAGE_ITEM/*=/}"
+        DOCKER_IMAGE_ARG="${DOCKER_IMAGE_ITEM/=*/}"
+        DOCKER_IMAGE_NAME="${DOCKER_IMAGE/:*/}"
+        DOCKER_IMAGE_MANIFEST="${DOCKER_IMAGE_NAME//\//_}-manifest.json"
+        if [ ! -f "${DOCKER_IMAGE_MANIFEST}" ]; then
+            docker manifest inspect "${DOCKER_IMAGE}" > "${DOCKER_IMAGE_MANIFEST}"
+        fi
+
+        DOCKER_IMAGE_DIGEST="$(jq -r ".manifests[] | select(${SELECT_FILTER}) | .digest" "${DOCKER_IMAGE_MANIFEST}")"
+        DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --build-arg ${DOCKER_IMAGE_ARG}=${DOCKER_IMAGE_NAME}@${DOCKER_IMAGE_DIGEST}"
+
+    done
+
+    DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS:1}"
+    docker build ${DOCKER_BUILD_ARGS} -t "${DOCKER_REPO}:${DOCKER_ARCH}-${DOCKER_TAG}" "${DOCKERFILE_PATH}"
+}
+
+for platform in ${DOCKER_PLATFORMS}; do
+    docker_build ${platform//:/ }
+done

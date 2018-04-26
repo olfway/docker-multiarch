@@ -1,0 +1,15 @@
+#!/bin/bash
+
+export PATH=".:$PATH"
+
+export DOCKER_TAG="${DOCKER_TAG:-latest}"
+export DOCKER_REPO="${DOCKER_REPO:-olfway/multiarch}"
+
+export DOCKER_PLATFORMS="
+  amd64:amd64
+  arm32v6:arm:v6
+  arm32v7:arm:v7
+  aarch64:arm64:v8
+"
+
+set -eux

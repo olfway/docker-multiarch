@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source hooks/_conf
+
+for platform in ${DOCKER_PLATFORMS}; do
+    docker push  ${DOCKER_REPO}:${platform/:*/}-${DOCKER_TAG}
+done
