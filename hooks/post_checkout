@@ -32,6 +32,6 @@ echo 'docker version:'
 echo 'setup binfmt interpreters'
 docker run --rm --privileged multiarch/qemu-user-static:register
 
-echo 'enable experimental cli features'
 mkdir -p ~/.docker
-echo '{"experimental": "enabled"}' > ~/.docker/config.json
+echo 'enable experimental cli features'
+echo "{\"experimental\": \"enabled\", ${DOCKERCFG:1}" > ~/.docker/config.json
