@@ -2,18 +2,21 @@
 
 echo 'post_checkout'
 
-DOCKER_RELEASE="18.03.0-ce"
-DOCKER_HASH_MAC_X86_64="26f34373af94478a94a1458a8e37bd4161fc546521328812bb8961deea268502"
-DOCKER_HASH_LINUX_X86_64="f5ea546a4ccd64fbb71825f964171256388f1181b000f3c56747075e383c81c6"
-
-DOCKER_ARCH="$(uname -m)"
-DOCKER_OS="$(uname -s | tr 'A-Z' 'a-z' | sed 's/darwin/mac/')"
-
-DOCKER_HASH_VAR="DOCKER_HASH_$(echo "$DOCKER_OS" | tr 'a-z' 'A-Z')_$(echo "$DOCKER_ARCH" | tr 'a-z' 'A-Z')"
-
 env | sort
 
-curl -s "https://download.docker.com/$(DOCKER_OS)/static/stable/$(DOCKER_ARCH)/docker-$(DOCKER_RELEASE).tgz" | gunzip | tar -x --strip-components 1 docker/docker
+set -x
+
+export DOCKER_RELEASE="18.03.0-ce"
+export DOCKER_HASH_MAC_X86_64="26f34373af94478a94a1458a8e37bd4161fc546521328812bb8961deea268502"
+export DOCKER_HASH_LINUX_X86_64="f5ea546a4ccd64fbb71825f964171256388f1181b000f3c56747075e383c81c6"
+
+export DOCKER_ARCH="$(uname -m)"
+export DOCKER_OS="$(uname -s | tr 'A-Z' 'a-z' | sed 's/darwin/mac/')"
+
+export DOCKER_HASH_VAR="DOCKER_HASH_$(echo "$DOCKER_OS" | tr 'a-z' 'A-Z')_$(echo "$DOCKER_ARCH" | tr 'a-z' 'A-Z')"
+
+
+curl -s "https://download.docker.com/$DOCKER_OS/static/stable/$DOCKER_ARCH/docker-$DOCKER_RELEASE.tgz" | gunzip | tar -x --strip-components 1 docker/docker
 
 if ! echo "${!DOCKER_HASH_VAR} docker" | sha256sum --check --status ; then
     echo "Hash not match:"
