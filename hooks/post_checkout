@@ -2,9 +2,9 @@
 
 set -eu
 
-env | sort
+export DEBIAN_FRONTEND=noninteractive
 
-set -x
+env | sort
 
 DOCKER_RELEASE="18.03.0-ce"
 DOCKER_HASH_MAC_X86_64="26f34373af94478a94a1458a8e37bd4161fc546521328812bb8961deea268502"
@@ -30,7 +30,7 @@ echo 'docker version:'
 ./docker --version
 
 echo 'setup binfmt interpreters'
-cronic docker run --rm --privileged multiarch/qemu-user-static:register
+docker run --rm --privileged multiarch/qemu-user-static:register
 
 echo 'enable experimental cli features'
 mkdir -p ~/.docker
