@@ -34,4 +34,4 @@ docker run --rm --privileged multiarch/qemu-user-static:register
 
 mkdir -p ~/.docker
 echo 'enable experimental cli features'
-echo "{\"experimental\": \"enabled\", ${DOCKERCFG:1}" > ~/.docker/config.json
+echo "{\"auths\": ${DOCKERCFG}, \"experimental\": \"enabled\"}" > ~/.docker/config.json
