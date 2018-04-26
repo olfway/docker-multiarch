@@ -6,28 +6,29 @@ if [ "${DOCKERFILE_PATH:-}" == "" ]; then
     DOCKERFILE_PATH="."
 fi
 
-/usr/bin/find . -type f -name '*-manifest.json' -delete
+#/usr/bin/find . -type f -name '*-manifest.json' -delete
 
 function docker_build() {
 
-    DOCKER_ARCH="$1"
-    DOCKER_PLATFORM_ARCH="$2"
+    DOCKER_PLATFORM="$1"
+    DOCKER_PLATFORM_NAME="$(echo "${DOCKER_PLATFORM}" | jq -r '.platform')"
+
+    DOCKER_PLATFORM_ARCH="$(echo "${DOCKER_PLATFORM}" | jq -r '.architecture')"
     SELECT_FILTER=".platform.architecture == \"${DOCKER_PLATFORM_ARCH}\""
 
-    if [ "$#" -ge "3" ]; then
-        DOCKER_PLATFORM_VAR="$3"
-        SELECT_FILTER="${SELECT_FILTER} and .platform.variant == \"${DOCKER_PLATFORM_VAR}\""
+    DOCKER_PLATFORM_VARIANT="$(echo "${DOCKER_PLATFORM}" | jq -r '.variant')"
+    if [ "${DOCKER_PLATFORM_VARIANT}" != "null" ]; then
+        SELECT_FILTER="${SELECT_FILTER} and .platform.variant == \"${DOCKER_PLATFORM_VARIANT}\""
     fi
 
     DOCKER_BUILD_ARGS=""
     for DOCKER_IMAGE_ITEM in $(grep '^ARG .*_IMAGE=' Dockerfile | cut -f2 -d' ' | sort -u); do
+
         DOCKER_IMAGE="${DOCKER_IMAGE_ITEM/*=/}"
         DOCKER_IMAGE_ARG="${DOCKER_IMAGE_ITEM/=*/}"
         DOCKER_IMAGE_NAME="${DOCKER_IMAGE/:*/}"
-        DOCKER_IMAGE_MANIFEST="${DOCKER_IMAGE_NAME//\//_}-manifest.json"
-        if [ ! -f "${DOCKER_IMAGE_MANIFEST}" ]; then
-            docker manifest inspect "${DOCKER_IMAGE}" > "${DOCKER_IMAGE_MANIFEST}"
-        fi
+
+        DOCKER_IMAGE_MANIFEST="$(manifest_name "${DOCKER_IMAGE}")"
 
         DOCKER_IMAGE_DIGEST="$(jq -r ".manifests[] | select(${SELECT_FILTER}) | .digest" "${DOCKER_IMAGE_MANIFEST}")"
         DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --build-arg ${DOCKER_IMAGE_ARG}=${DOCKER_IMAGE_NAME}@${DOCKER_IMAGE_DIGEST}"
@@ -35,9 +36,9 @@ function docker_build() {
     done
 
     DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS:1}"
-    docker build ${DOCKER_BUILD_ARGS} -t "${DOCKER_REPO}:${DOCKER_ARCH}-${DOCKER_TAG}" "${DOCKERFILE_PATH}"
+    docker build ${DOCKER_BUILD_ARGS} -t "${DOCKER_REPO}:${DOCKER_PLATFORM_NAME}-${DOCKER_TAG}" "${DOCKERFILE_PATH}"
 }
 
-for platform in ${DOCKER_PLATFORMS}; do
-    docker_build ${platform//:/ }
+for DOCKER_PLATFORM in ${DOCKER_PLATFORMS}; do
+    docker_build "${DOCKER_PLATFORM}"
 done

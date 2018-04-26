@@ -2,6 +2,7 @@
 
 source hooks/_conf
 
-for platform in ${DOCKER_PLATFORMS}; do
-    docker push  ${DOCKER_REPO}:${platform/:*/}-${DOCKER_TAG}
+for DOCKER_PLATFORM in ${DOCKER_PLATFORMS}; do
+    DOCKER_PLATFORM_NAME="$(echo "${DOCKER_PLATFORM}" | jq -r '.platform')"
+    docker push ${DOCKER_REPO}:${DOCKER_PLATFORM_NAME}-${DOCKER_TAG}
 done
