@@ -7,6 +7,9 @@ docker run --rm --privileged multiarch/qemu-user-static:register
 
 cat ~/.docker/config.json
 
+echo 'docker version:'
+docker --version
+
 echo 'docker manifest:'
 docker manifest --help
 
