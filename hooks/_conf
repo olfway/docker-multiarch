@@ -7,42 +7,9 @@ export PATH=".:$PATH"
 export DOCKER_TAG="${DOCKER_TAG:-latest}"
 export DOCKER_REPO="${DOCKER_REPO:-olfway/multiarch}"
 
-IMAGE_NAMES="$(grep '^ARG .*_IMAGE=' Dockerfile | cut -f2 -d'=' | sort -u)"
-IMAGES_COUNT="$(echo "${IMAGE_NAMES}" | wc -l)"
-
-function manifest_name() {
-    echo "${1}-manifest.json" | tr '/:' '__'
-}
-
-function generate_docker_platforms() {
-
-    for IMAGE_NAME in $(grep '^ARG .*_IMAGE=' Dockerfile | cut -f2 -d'=' | sort -u); do
-
-        IMAGE_REPO="${IMAGE_NAME/:*/}"
-        IMAGE_MANIFEST="$(manifest_name "${IMAGE_NAME}")"
-
-        if [ ! -f "${IMAGE_MANIFEST}" ]; then
-            docker manifest inspect "${IMAGE_NAME}" > "${IMAGE_MANIFEST}"
-        fi
-
-        jq -r -c '.manifests[] .platform' "${IMAGE_MANIFEST}" | grep 'linux' | egrep 'amd|arm' | \
-        while
-            read DOCKER_PLATFORM
-        do
-
-            DOCKER_PLATFORM_ARCH="$(echo "${DOCKER_PLATFORM}" | jq -r '.architecture')"
-            DOCKER_PLATFORM_VARIANT="$(echo "${DOCKER_PLATFORM}" | jq -r '.variant')"
-            if [ "$DOCKER_PLATFORM_ARCH" == "arm" ]; then
-                DOCKER_PLATFORM_NAME="${DOCKER_PLATFORM_ARCH}32${DOCKER_PLATFORM_VARIANT}"
-            elif [ "$DOCKER_PLATFORM_ARCH" == "arm64" ]; then
-                DOCKER_PLATFORM_NAME="aarch64"
-            else
-                DOCKER_PLATFORM_NAME="${DOCKER_PLATFORM_ARCH}${DOCKER_PLATFORM_VARIANT/null/}"
-            fi
-
-            echo "{\"platform\":\"${DOCKER_PLATFORM_NAME}\",${DOCKER_PLATFORM:1}"
-        done
-    done
-}
-
-DOCKER_PLATFORMS="$(generate_docker_platforms | sort | uniq -c | awk "/ ${IMAGES_COUNT} / { print \$2 }")"
+export DOCKER_PLATFORMS='
+{"platform":"amd64","architecture":"amd64","os":"linux"}
+{"platform":"arm32v5","architecture":"arm","os":"linux","variant":"v5"}
+{"platform":"arm32v6","architecture":"arm","os":"linux","variant":"v6"}
+{"platform":"arm32v7","architecture":"arm","os":"linux","variant":"v7"}
+{"platform":"aarch64","architecture":"arm64","os":"linux","variant":"v8"}'

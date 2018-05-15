@@ -6,8 +6,6 @@ if [ "${DOCKERFILE_PATH:-}" == "" ]; then
     DOCKERFILE_PATH="."
 fi
 
-#/usr/bin/find . -type f -name '*-manifest.json' -delete
-
 function docker_build() {
 
     DOCKER_PLATFORM="$1"
@@ -28,7 +26,10 @@ function docker_build() {
         DOCKER_IMAGE_ARG="${DOCKER_IMAGE_ITEM/=*/}"
         DOCKER_IMAGE_NAME="${DOCKER_IMAGE/:*/}"
 
-        DOCKER_IMAGE_MANIFEST="$(manifest_name "${DOCKER_IMAGE}")"
+        DOCKER_IMAGE_MANIFEST="$(echo "${DOCKER_IMAGE}" | tr '/:' '__')-manifest.json"
+        if [ ! -f "${DOCKER_IMAGE_MANIFEST}" ]; then
+            docker manifest inspect "${IMAGE_NAME}" > "${DOCKER_IMAGE_MANIFEST}"
+        fi
 
         DOCKER_IMAGE_DIGEST="$(jq -r ".manifests[] | select(${SELECT_FILTER}) | .digest" "${DOCKER_IMAGE_MANIFEST}")"
         DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS} --build-arg ${DOCKER_IMAGE_ARG}=${DOCKER_IMAGE_NAME}@${DOCKER_IMAGE_DIGEST}"
@@ -38,6 +39,8 @@ function docker_build() {
     DOCKER_BUILD_ARGS="${DOCKER_BUILD_ARGS:1}"
     docker build ${DOCKER_BUILD_ARGS} -t "${DOCKER_REPO}:${DOCKER_PLATFORM_NAME}-${DOCKER_TAG}" "${DOCKERFILE_PATH}"
 }
+
+find . -type f -name '*-manifest.json' -delete
 
 for DOCKER_PLATFORM in ${DOCKER_PLATFORMS}; do
     docker_build "${DOCKER_PLATFORM}"
