@@ -28,7 +28,7 @@ function docker_build() {
 
         DOCKER_IMAGE_MANIFEST="$(echo "${DOCKER_IMAGE}" | tr '/:' '__')-manifest.json"
         if [ ! -f "${DOCKER_IMAGE_MANIFEST}" ]; then
-            docker manifest inspect "${IMAGE_NAME}" > "${DOCKER_IMAGE_MANIFEST}"
+            docker manifest inspect "${DOCKER_IMAGE}" > "${DOCKER_IMAGE_MANIFEST}"
         fi
 
         DOCKER_IMAGE_DIGEST="$(jq -r ".manifests[] | select(${SELECT_FILTER}) | .digest" "${DOCKER_IMAGE_MANIFEST}")"
