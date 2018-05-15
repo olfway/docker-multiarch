@@ -31,4 +31,9 @@ echo 'setup binfmt interpreters'
 docker run --rm --privileged multiarch/qemu-user-static:register
 
 mkdir -p ~/.docker
+if [ -f ~/.docker/config.json ]; then
+    echo "config.json already exist:"
+    cat ~/.docker/config.json
+    exit 1
+fi
 echo "{'auths': ${DOCKERCFG}, 'experimental': 'enabled'}" | tr "'" '"' > ~/.docker/config.json
