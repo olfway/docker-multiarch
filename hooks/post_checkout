@@ -4,8 +4,6 @@ set -eu
 
 export DEBIAN_FRONTEND=noninteractive
 
-env | sort
-
 DOCKER_RELEASE="18.03.0-ce"
 DOCKER_DIGEST_MAC_X86_64="26f34373af94478a94a1458a8e37bd4161fc546521328812bb8961deea268502"
 DOCKER_DIGEST_LINUX_X86_64="f5ea546a4ccd64fbb71825f964171256388f1181b000f3c56747075e383c81c6"
@@ -33,5 +31,4 @@ echo 'setup binfmt interpreters'
 docker run --rm --privileged multiarch/qemu-user-static:register
 
 mkdir -p ~/.docker
-echo 'enable experimental cli features'
 echo "{'auths': ${DOCKERCFG}, 'experimental': 'enabled'}" | tr "'" '"' > ~/.docker/config.json
