@@ -2,6 +2,8 @@
 
 set -eu
 
+source hooks/_conf
+
 export DEBIAN_FRONTEND=noninteractive
 
 DOCKER_RELEASE="18.03.1-ce"
